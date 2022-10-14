@@ -1,6 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework import permissions,status
 from rest_framework.response import Response
+from django.contrib.auth.hashers import check_password
+from djangorest import settings
+import datetime
+import jwt
 
 from .models import User
 from .serializers import UserSerializer
@@ -19,3 +23,34 @@ def insert_user(req):
 
     user.save()
     return Response(status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+def login_user(req):
+    username = req.data['username']
+    password = req.data['password']
+    user = User.objects.filter(username=username).first()
+
+    if user is None:
+        return Response("Account Not Found",status=status.HTTP_401_UNAUTHORIZED)
+        
+    if not check_password(password, user.password):
+        return Response("Wrong Password",status=status.HTTP_401_UNAUTHORIZED)
+
+    payload = {
+        'id': user.id,
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=60),
+        'iat': datetime.datetime.now(datetime.timezone.utc)
+    }
+
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    response = Response()
+    response.set_cookie(key='jwt', value=token, httponly=True)
+    response.data = {'jwt': token}
+    return response
+
+@api_view(["POST"])
+def logout_user(req):
+    response = Response()
+    response.delete_cookie('jwt')
+    response.status_code = status.HTTP_200_OK
+    return response
