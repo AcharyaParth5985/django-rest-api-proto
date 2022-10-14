@@ -54,3 +54,18 @@ def logout_user(req):
     response.delete_cookie('jwt')
     response.status_code = status.HTTP_200_OK
     return response
+
+@api_view(["GET"])
+def get_user(req):
+    token = req.COOKIES.get('jwt')
+    if not token:
+        return Response("Unauthenticated", status=status.HTTP_401_UNAUTHORIZED)
+        
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError as e:
+        return Response(e, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = User.objects.filter(id=payload['id']).first()
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
