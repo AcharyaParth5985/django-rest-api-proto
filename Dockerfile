@@ -8,7 +8,7 @@ RUN pip3 install -r requirements.txt
 
 COPY . /workdir/
 RUN python3 manage.py migrate
-RUN python3 manage.py collectstatic
+RUN python3 manage.py collectstatic --noinput
 
 EXPOSE 8000
 
