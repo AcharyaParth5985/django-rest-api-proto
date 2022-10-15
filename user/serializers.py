@@ -8,7 +8,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
         instance = self.Meta.model(**validated_data)
         instance.save()
         return instance
