@@ -16,7 +16,3 @@ class User(models.Model):
     
     class Meta:
         managed=False
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'email', 'first_name', 'last_name')
