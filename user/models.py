@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib import admin
 from django.contrib.auth.hashers import make_password
 
 # Create your models here.
@@ -13,3 +13,10 @@ class User(models.Model):
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
         return super().save(*args,**kwargs)
+    
+    class Meta:
+        managed=False
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'username', 'email', 'first_name', 'last_name')
