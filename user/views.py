@@ -8,6 +8,7 @@ import jwt
 
 from .models import User
 from .serializers import UserSerializer
+from django.contrib.auth.hashers import make_password
 
 @api_view(["GET"])
 def get_all_users(req):
@@ -69,3 +70,25 @@ def get_user(req):
     user = User.objects.filter(id=payload['id']).first()
     serializer = UserSerializer(user)
     return Response(serializer.data)
+
+@api_view(["POST"])
+def change_password(req):
+    token = req.COOKIES.get('jwt')
+
+    if not token:
+         return Response("Unauthenticated", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError as e:
+        return Response(e, status=status.HTTP_401_UNAUTHORIZED)
+
+    new_pass = req.data.get('password')
+    if new_pass is None:
+        return Response("Password Not Supplied", status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.filter(id=payload['id']).first()
+    user.password = make_password(new_pass)
+    user.save()
+
+    return Response(status=status.HTTP_200_OK)
