@@ -64,8 +64,8 @@ def get_user(req):
         
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError as e:
-        return Response(e, status=status.HTTP_401_UNAUTHORIZED)
+    except jwt.ExpiredSignatureError:
+        return Response("Expired Token", status=status.HTTP_401_UNAUTHORIZED)
 
     user = User.objects.filter(id=payload['id']).first()
     serializer = UserSerializer(user)
@@ -80,8 +80,8 @@ def change_password(req):
 
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError as e:
-        return Response(e, status=status.HTTP_401_UNAUTHORIZED)
+    except jwt.ExpiredSignatureError:
+        return Response("Expired Token", status=status.HTTP_401_UNAUTHORIZED)
 
     new_pass = req.data.get('password')
     if new_pass is None:
