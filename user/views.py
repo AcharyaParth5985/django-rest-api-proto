@@ -38,7 +38,7 @@ def login_user(req):
         return Response("Wrong Password",status=status.HTTP_401_UNAUTHORIZED)
 
     payload = {
-        'id': user.id,
+        'username': user.username,
         'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=60),
         'iat': datetime.datetime.now(datetime.timezone.utc)
     }
@@ -67,7 +67,7 @@ def get_user(req):
     except jwt.ExpiredSignatureError:
         return Response("Expired Token", status=status.HTTP_401_UNAUTHORIZED)
 
-    user = User.objects.filter(id=payload['id']).first()
+    user = User.objects.filter(username=payload['username']).first()
     serializer = UserSerializer(user)
     return Response(serializer.data)
 
@@ -87,7 +87,12 @@ def change_password(req):
     if new_pass is None:
         return Response("Password Not Supplied", status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.filter(id=payload['id']).first()
+    user = User.objects.filter(username=payload['username']).first()
+
+    # User.objects.filter(...).first() may return None
+    # but we are decoding username from JWT, meaning the user MUST EXIST
+    assert user is not None
+
     user.password = make_password(new_pass)
     user.save()
 
