@@ -138,3 +138,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# use the custom user model
+AUTH_USER_MODEL = 'user.User'

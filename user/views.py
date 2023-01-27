@@ -1,99 +1,81 @@
-from rest_framework.decorators import api_view
-from rest_framework import permissions,status
+from django.shortcuts import render
+from rest_framework import permissions as p
+from django.contrib.auth import login, logout
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.request import Request
 from rest_framework.response import Response
-from django.contrib.auth.hashers import check_password
-from djangorest import settings
-import datetime
-import jwt
+from user import serializers as s
+from user import models as m
+from user.roles import Role
 
-from .models import User
-from .serializers import UserSerializer
-from django.contrib.auth.hashers import make_password
+USER_SERIALIZER_MAP = {
+    Role.ADMIN: s.BaseUserSerializer(m.Admin),
+    Role.DEPT_OFFICER: s.BaseUserSerializer(m.DeptOfficer),
+    Role.STUDENT: s.BaseUserSerializer(m.Student),
+    Role.VOLUNTEER: s.BaseUserSerializer(m.Volunteer),
+}
 
-@api_view(["GET"])
-def get_all_users(req):
-    data = User.objects.all()
-    serializer = UserSerializer(data,many=True)
-    return Response(serializer.data)
+# Create your views here.
+@api_view(["POST"])
+def insert_user(req: Request):
+    _role = req.data.get("role")
+    if _role is None:
+        return Response("Role is Not Supplied", status=400)
+
+    serializer_class = USER_SERIALIZER_MAP.get(_role)
+    if serializer_class is None:
+        return Response("Invalid Role Supplied", status=400)
+
+    serializer = serializer_class(data=req.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+    serializer.save()
+
+    return Response(status=200)
+
 
 @api_view(["POST"])
-def insert_user(req):
-    user = UserSerializer(data=req.data)
-    if not user.is_valid():
-        return Response(user.errors,status=status.HTTP_400_BAD_REQUEST)
+def login_user(req: Request):
+    srlzr = s.UserLoginSerializer(data=req.data)
+    if not srlzr.is_valid():
+        return Response(srlzr.errors, status=400)
 
-    user.save()
-    return Response(status=status.HTTP_200_OK)
-
-@api_view(["POST"])
-def login_user(req):
-    username = req.data['username']
-    password = req.data['password']
-    user = User.objects.filter(username=username).first()
-
+    user = m.User.objects.filter(username=srlzr.validated_data["username"]).first()
     if user is None:
-        return Response("Account Not Found",status=status.HTTP_401_UNAUTHORIZED)
-        
-    if not check_password(password, user.password):
-        return Response("Wrong Password",status=status.HTTP_401_UNAUTHORIZED)
+        return Response("User Not Found in System", status=404)
 
-    payload = {
-        'username': user.username,
-        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=60),
-        'iat': datetime.datetime.now(datetime.timezone.utc)
-    }
+    if not user.check_password(srlzr.validated_data["password"]):
+        return Response("Wrong password", status=401)
 
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-    response = Response()
-    response.set_cookie(key='jwt', value=token, httponly=True)
-    response.data = {'jwt': token}
-    return response
+    login(req, user)
+    return Response(status=200)
 
-@api_view(["POST"])
-def logout_user(req):
-    response = Response()
-    response.delete_cookie('jwt')
-    response.status_code = status.HTTP_200_OK
-    return response
 
 @api_view(["GET"])
-def get_user(req):
-    token = req.COOKIES.get('jwt')
-    if not token:
-        return Response("Unauthenticated", status=status.HTTP_401_UNAUTHORIZED)
-        
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        return Response("Expired Token", status=status.HTTP_401_UNAUTHORIZED)
+@permission_classes([p.IsAuthenticated])
+def logout_user(req: Request):
+    logout(req)
+    return Response(status=200)
 
-    user = User.objects.filter(username=payload['username']).first()
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
 
 @api_view(["POST"])
-def change_password(req):
-    token = req.COOKIES.get('jwt')
+@permission_classes([p.IsAuthenticated])
+def change_password(req: Request):
+    serializer = s.UserChangePasswordSerialzer(data=req.data)
 
-    if not token:
-         return Response("Unauthenticated", status=status.HTTP_401_UNAUTHORIZED)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
 
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        return Response("Expired Token", status=status.HTTP_401_UNAUTHORIZED)
+    if serializer.validated_data["password1"] != serializer.validated_data["password2"]:
+        return Response("password do not match", status=400)
 
-    new_pass = req.data.get('password')
-    if new_pass is None:
-        return Response("Password Not Supplied", status=status.HTTP_400_BAD_REQUEST)
+    req.user.set_password(serializer.validated_data["password1"])
+    req.user.save()
 
-    user = User.objects.filter(username=payload['username']).first()
+    return Response(status=200)
 
-    # User.objects.filter(...).first() may return None
-    # but we are decoding username from JWT, meaning the user MUST EXIST
-    assert user is not None
 
-    user.password = make_password(new_pass)
-    user.save()
-
-    return Response(status=status.HTTP_200_OK)
+@api_view(["GET"])
+@permission_classes([p.IsAuthenticated])
+def get_user(req: Request):
+    return Response(req.user.get_username())
