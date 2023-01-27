@@ -9,3 +9,5 @@ staticfiles/
 .fuse_hidden*
 # backup files i make for testing purposes
 *.bak
+# my env setup script
+setup.sh
