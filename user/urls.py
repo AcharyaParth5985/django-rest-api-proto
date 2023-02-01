@@ -7,4 +7,5 @@ urlpatterns = [
     path('logout/', v.logout_user),
     path('me/', v.get_user),
     path('changepassword/', v.change_password),
+    path('resume/<str:username>', v.generate_resume)
 ]

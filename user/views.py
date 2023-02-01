@@ -7,6 +7,10 @@ from rest_framework.response import Response
 from user import serializers as s
 from user import models as m
 from user.roles import Role
+from django.template import Context, Template
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+from user.utils import link_callback
 
 USER_SERIALIZER_MAP = {
     Role.ADMIN: s.BaseUserSerializer(m.Admin),
@@ -16,6 +20,8 @@ USER_SERIALIZER_MAP = {
 }
 
 # Create your views here.
+
+
 @api_view(["POST"])
 def insert_user(req: Request):
     _role = req.data.get("role")
@@ -40,7 +46,8 @@ def login_user(req: Request):
     if not srlzr.is_valid():
         return Response(srlzr.errors, status=400)
 
-    user = m.User.objects.filter(username=srlzr.validated_data["username"]).first()
+    user = m.User.objects.filter(
+        username=srlzr.validated_data["username"]).first()
     if user is None:
         return Response("User Not Found in System", status=404)
 
@@ -79,3 +86,29 @@ def change_password(req: Request):
 @permission_classes([p.IsAuthenticated])
 def get_user(req: Request):
     return Response(req.user.get_username())
+
+
+@api_view(["GET"])
+def generate_resume(req: Request, username: str):
+    user = m.Student.objects.filter(username=username).first()
+    if user is None:
+        return Response("User not Found", status=404)
+
+    # dummy resume html template
+    t = Template('<center><h1>{{ message }}</h1></center>.')
+
+    # dummy context to render, dict is supposed to be
+    # student details
+    c = Context({"message": "Resume"})
+
+    html = t.render(c)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{user.username}_resume.pdf"'
+    pisa_status = pisa.CreatePDF(
+        html, dest=response, link_callback=link_callback)
+
+    # if errors while generateing pdf, return error
+    if pisa_status.err:
+        return Response(f'We had some errors <pre>{html}</pre>', status=500)
+
+    return response
