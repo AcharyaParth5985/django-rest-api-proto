@@ -89,7 +89,8 @@ class AdminUserAdmin(UserAdmin_):
 @admin.register(m.Student)
 class StudentAdmin(UserAdmin_):
     fieldsets = (
-        (None, {"fields": ("username", "password", "phone_number", "marks")}),
+        (None, {"fields": ("username", "password", "phone_number",
+         "marks", "institute", "department", "semester", "batch_year")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
         (
             _("Permissions"),
@@ -117,6 +118,10 @@ class StudentAdmin(UserAdmin_):
                     "password1",
                     "password2",
                     "marks",
+                    "institute",
+                    "department",
+                    "semester",
+                    "batch_year"
                 ),
             },
         ),
@@ -126,7 +131,9 @@ class StudentAdmin(UserAdmin_):
 @admin.register(m.Volunteer)
 class VolunteerAdmin(UserAdmin_):
     fieldsets = (
-        (None, {"fields": ("username", "password", "phone_number", "job_numbers")}),
+        (None, {"fields": ("username", "password", "phone_number",
+                           "job_numbers", "department", "semester",
+                           "volunteer_type", "reference")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
         (
             _("Permissions"),
@@ -154,6 +161,10 @@ class VolunteerAdmin(UserAdmin_):
                     "password1",
                     "password2",
                     "job_numbers",
+                    "department",
+                    "semester",
+                    "volunteer_type",
+                    "reference",
                 ),
             },
         ),
@@ -163,7 +174,8 @@ class VolunteerAdmin(UserAdmin_):
 @admin.register(m.DeptOfficer)
 class DeptOfficerAdmin(UserAdmin_):
     fieldsets = (
-        (None, {"fields": ("username", "password", "phone_number", "dept")}),
+        (None, {"fields": ("username", "password",
+         "phone_number", "department", "address")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
         (
             _("Permissions"),
@@ -190,7 +202,8 @@ class DeptOfficerAdmin(UserAdmin_):
                     "phone_number",
                     "password1",
                     "password2",
-                    "dept",
+                    "department",
+                    "address"
                 ),
             },
         ),
