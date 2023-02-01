@@ -35,7 +35,8 @@ class User(AbstractUser):
     _predefined_permissions: List[str] = []
 
     role = models.PositiveSmallIntegerField(choices=Role.choices)
-    phone_number = models.CharField(max_length=10, validators=[partial(number_validator, length=10)])
+    phone_number = models.CharField(max_length=10, validators=[
+                                    partial(number_validator, length=10)])
 
     def save(
         self,
@@ -80,7 +81,7 @@ class Student(User):
     institute = models.CharField(max_length=256)
     department = models.CharField(max_length=256)
     semester = models.CharField(max_length=1, blank=False)
-    batch_year = models.DateField() # 4 character field possible
+    batch_year = models.DateField()  # 4 character field possible
 
     _predefined_permissions = ["view_student"]
 
@@ -93,8 +94,9 @@ class Volunteer(User):
     _base_role = Role.VOLUNTEER
     job_numbers = models.PositiveSmallIntegerField()
     department = models.CharField(max_length=256)
-    semester = models.CharField(max_length=1,blank=False)
-    volunteer_type = models.PositiveSmallIntegerField(choices=VolunteerType.choices)
+    semester = models.CharField(max_length=1, blank=False)
+    volunteer_type = models.PositiveSmallIntegerField(
+        choices=VolunteerType.choices)
     reference = models.TextField(max_length=2000, null=True)
 
     _predefined_permissions = ["view_volunteer"]
@@ -115,17 +117,20 @@ class DeptOfficer(User):
         verbose_name = "Department Officer"
         verbose_name_plural = "Department Officers"
 
+
 class Company(models.Model):
     name = models.CharField(max_length=256)
     email_id = models.EmailField()
-    phone_number = models.CharField(max_length=10, validators=[partial(number_validator, length=10)])
+    phone_number = models.CharField(max_length=10, validators=[
+                                    partial(number_validator, length=10)])
     hr_name = models.CharField(max_length=256)
     address = models.TextField()
-    company_relation = models.PositiveSmallIntegerField(choices=CompanyType.choices)
+    company_relation = models.PositiveSmallIntegerField(
+        choices=CompanyType.choices)
     # is mandatory in document but ONLY needed if company is a child
     parent_company_name = models.CharField(max_length=256, null=True)
     # possible to move to enum probably
-    industry_type = models.CharField(max_length=256) 
+    industry_type = models.CharField(max_length=256)
     current_employees = models.PositiveBigIntegerField()
     # possible to move to enum probably
     company_type = models.CharField(max_length=256)
@@ -134,11 +139,13 @@ class Company(models.Model):
         verbose_name = "Company"
         verbose_name_plural = "Companies"
 
+
 class CurrentOpening(models.Model):
     job_title = models.CharField(max_length=256)
     opening_year = models.CharField(max_length=256)
-    # supposed to be numeric 15? what exactly is nature, in a 15 digit number? 
-    nature_of_job = models.CharField(max_length=15, validators=[partial(number_validator, length = 15)])
+    # supposed to be numeric 15? what exactly is nature, in a 15 digit number?
+    nature_of_job = models.CharField(max_length=15, validators=[
+                                     partial(number_validator, length=15)])
     short_description = models.CharField(max_length=256)
     long_description = models.TextField()
     min_qualification = models.PositiveIntegerField()
@@ -150,5 +157,5 @@ class CurrentOpening(models.Model):
     min_package = models.PositiveBigIntegerField()
     max_package = models.PositiveBigIntegerField()
     # supposed to be boolean, what about `ANY` type? nullable boolean?
-    gender_preference = models.PositiveSmallIntegerField(choices=Gender.choices)
-
+    gender_preference = models.PositiveSmallIntegerField(
+        choices=Gender.choices)
