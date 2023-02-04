@@ -8,7 +8,7 @@ from user import serializers as s
 from user import models as m
 from user.roles import Role
 from django.template import Context, Template
-from xhtml2pdf import pisa
+from xhtml2pdf import pisa  # type: ignore
 from django.http import HttpResponse
 from user.utils import link_callback
 

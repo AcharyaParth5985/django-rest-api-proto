@@ -2,7 +2,6 @@ from django.contrib import admin
 from user import models as m
 from django.contrib.auth.admin import UserAdmin as UserAdmin_
 from django.utils.translation import gettext_lazy as _
-from django.contrib.admin import ModelAdmin
 
 # Register your models here.
 # @admin.register(m.User)
@@ -207,29 +206,4 @@ class DeptOfficerAdmin(UserAdmin_):
                 ),
             },
         ),
-    )
-
-
-# TODO : add filters and stuff
-@admin.register(m.Company)
-class CompanyAdmin(ModelAdmin):
-    list_display = (
-        "name",
-        "email_id",
-        "hr_name",
-        "industry_type",
-        "company_type",
-    )
-
-
-# TODO : add filters and stuff
-@admin.register(m.CurrentOpening)
-class CurrentOpeningsAdmin(ModelAdmin):
-    list_display = (
-        "job_title",
-        "opening_year",
-        "nature_of_job",
-        "vacancy_count",
-        "min_package",
-        "gender_preference",
     )

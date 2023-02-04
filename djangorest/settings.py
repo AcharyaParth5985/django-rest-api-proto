@@ -23,14 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY:str = os.environ['SECRET_KEY']
+SECRET_KEY: str = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 PRODUCTION = os.environ.get('PRODUCTION')
 DEBUG = True if PRODUCTION is None else (PRODUCTION.lower() != "true")
 
 ENV_ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
-ALLOWED_HOSTS = [] if ENV_ALLOWED_HOSTS is None else ENV_ALLOWED_HOSTS.split(' ')
+ALLOWED_HOSTS = [] if ENV_ALLOWED_HOSTS is None else ENV_ALLOWED_HOSTS.split(
+    ' ')
 # hardcoded allowed hosts goes here
 ALLOWED_HOSTS += []
 
@@ -46,7 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    'user'
+    'user',
+    'company'
 ]
 
 MIDDLEWARE = [
