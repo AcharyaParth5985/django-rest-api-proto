@@ -19,6 +19,12 @@ def get_companies(req: Request):
 
 @api_view(["POST"])
 def add_company(req: Request):
+    if not cast(User, req.user).has_perm('company.add_company'):
+        return Response(
+            "You dont have the permission to add a company",
+             status=403
+        )
+
     serializer = s.CompanySerializer(data=req.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=400)
@@ -30,7 +36,7 @@ def add_company(req: Request):
 @api_view(["POST"])
 @permission_classes([p.IsAuthenticated])
 def remove_company(req: Request, id: int):
-    if not cast(User,req.user).has_perm('company.can_delete_company'):
+    if not cast(User,req.user).has_perm('company.delete_company'):
         return Response(
             "You dont have the permission to delete a company!",
             status=403
