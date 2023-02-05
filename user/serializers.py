@@ -2,6 +2,7 @@ from rest_framework import serializers
 from typing import Any
 
 
+# TODO : Turn this into a class decorator
 def BaseUserSerializer(klass: Any):
     class _klass(serializers.ModelSerializer):
         class Meta:
